@@ -2,6 +2,7 @@ package com.example.group.mapper
 
 import com.example.group.data.GroupCreateRequestDTO
 import com.example.group.data.GroupCreateResponseDTO
+import com.example.group.data.GroupHierarchyViewDTO
 import com.example.group.data.GroupParentChangeResponseDTO
 import com.example.group.domain.Group
 import org.mapstruct.Mapper
@@ -23,4 +24,9 @@ interface GroupMapper {
         Mapping(target = "parentId", source = "parentGroup.id")
     )
     fun toGroupParentChangeResponseDTO(group: Group): GroupParentChangeResponseDTO
+
+    @Mappings(
+        Mapping(target = "groupId", source = "id"),
+    )
+    fun toGroupHierarchyViewDTO(group: Group?): GroupHierarchyViewDTO
 }

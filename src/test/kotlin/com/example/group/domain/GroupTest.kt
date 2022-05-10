@@ -12,7 +12,7 @@ internal class GroupTest {
         group.run {
             assertThat(groupName).isEqualTo("조직도")
             assertThat(parentGroup).isNull()
-            assertThat(childGroup.isEmpty())
+            assertThat(childrenGroup.isEmpty())
             assertThat(groupEmployee.isEmpty())
         }
     }

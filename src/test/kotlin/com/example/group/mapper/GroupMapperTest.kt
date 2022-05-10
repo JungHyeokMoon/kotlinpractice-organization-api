@@ -26,7 +26,7 @@ internal class GroupMapperTest {
         group.run {
             assertThat(groupName).isEqualTo("클라우드개발센터")
             assertThat(parentGroup).isNull()
-            assertThat(childGroup).isEmpty()
+            assertThat(childrenGroup).isEmpty()
             assertThat(groupEmployee).isEmpty()
         }
     }
@@ -50,6 +50,33 @@ internal class GroupMapperTest {
         mappedCreateResponseDTO.run {
             assertThat(groupName).isEqualTo("클라우드개발센터")
             assertThat(groupId).isEqualTo(1L)
+        }
+    }
+
+    @Test
+    fun `GroupMapper entity to GroupHierarchyViewDTO`(){
+        val rootGroup =Group("홍익대학교", id=1L)
+        val tech = Group("공과대학", rootGroup, 2L)
+        val liberal = Group("문과대학", rootGroup, 3L)
+        rootGroup.childrenGroup.add(tech)
+        rootGroup.childrenGroup.add(liberal)
+        val computer=Group("컴퓨터공학과",tech,4L)
+        tech.childrenGroup.add(computer)
+
+        val toGroupHierarchyViewDTO = mapper.toGroupHierarchyViewDTO(rootGroup)
+        toGroupHierarchyViewDTO.run {
+            assertThat(groupName).isEqualTo("홍익대학교")
+            assertThat(groupId).isEqualTo(1L)
+            assertThat(childrenGroup.size).isEqualTo(2)
+        }
+        toGroupHierarchyViewDTO.childrenGroup.toList().run {
+            assertThat( component1().groupName).isEqualTo("공과대학")
+            assertThat(component1().groupId).isEqualTo(2L)
+            assertThat(component1().childrenGroup.size).isEqualTo(1)
+            assertThat( component1().childrenGroup.toList()[0].groupName).isEqualTo("컴퓨터공학과")
+            assertThat(component2().groupName).isEqualTo("문과대학")
+            assertThat(component2().groupId).isEqualTo(3L)
+            assertThat(component2().childrenGroup.size).isEqualTo(0)
         }
     }
 }

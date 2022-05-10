@@ -99,7 +99,7 @@ internal class GroupServiceTest {
         }
 
         assertThat(group.parentGroup).isEqualTo(changedGroup)
-        assertThat(changedGroup.childGroup.contains(group)).isEqualTo(true)
+        assertThat(changedGroup.childrenGroup.contains(group)).isEqualTo(true)
     }
 
     @Test
@@ -120,7 +120,7 @@ internal class GroupServiceTest {
         }
 
         assertThat(group.parentGroup).isEqualTo(parentGroup)
-        assertThat(parentGroup.childGroup.contains(group)).isEqualTo(true)
+        assertThat(parentGroup.childrenGroup.contains(group)).isEqualTo(true)
     }
 
     @Test
@@ -143,14 +143,14 @@ internal class GroupServiceTest {
         val removeParentGroupRequest = RemoveParentGroupRequest(2L)
         val parentGroup = Group("공과대학", id = 1L)
         val group = Group("컴퓨터공학과", parentGroup, id = 2L)
-        parentGroup.childGroup.add(group)
+        parentGroup.childrenGroup.add(group)
 
         every { groupRepository.findByIdOrNull(removeParentGroupRequest.groupId) } returns group
 
         groupService.removeParentGroup(removeParentGroupRequest)
 
         assertThat(group.parentGroup).isNull()
-        assertThat(parentGroup.childGroup.contains(group)).isFalse
+        assertThat(parentGroup.childrenGroup.contains(group)).isFalse
     }
 
     @Test
@@ -159,12 +159,50 @@ internal class GroupServiceTest {
         this.groupService = GroupService(groupRepository, groupMapper)
 
         val removeParentGroupRequest = RemoveParentGroupRequest(2L)
-        val group = Group("컴퓨터공학과",  id = 2L)
+        val group = Group("컴퓨터공학과", id = 2L)
 
         every { groupRepository.findByIdOrNull(removeParentGroupRequest.groupId) } returns group
 
         groupService.removeParentGroup(removeParentGroupRequest)
 
         assertThat(group.parentGroup).isNull()
+    }
+
+    @Test
+    fun `allGroupView test - 조직도 이름이 존재하지 않을시 null반환`() {
+        this.groupMapper = GroupMapperImpl()
+        this.groupService = GroupService(groupRepository, groupMapper)
+        every { groupRepository.findAll() } returns emptyList<Group>()
+        assertThat(groupService.allGroupView()).isNull()
+    }
+
+    @Test
+    fun `allGroupView test - 조직도 이름이 존재할때, 그룹계층구조를 반환합니다`() {
+        this.groupMapper = GroupMapperImpl()
+        this.groupService = GroupService(groupRepository, groupMapper)
+        val rootGroup = Group("조직도", id = 1L)
+        val tech = Group("공과대학", rootGroup, 2L)
+        val liberal = Group("문과대학", rootGroup, 3L)
+        rootGroup.childrenGroup.add(tech)
+        rootGroup.childrenGroup.add(liberal)
+        val computer = Group("컴퓨터공학과", tech, 4L)
+        tech.childrenGroup.add(computer)
+        every { groupRepository.findAll() } returns listOf(rootGroup, tech, liberal, computer)
+
+        val allGroupView = groupService.allGroupView()
+        allGroupView.run {
+            assertThat(groupName).isEqualTo("조직도")
+            assertThat(groupId).isEqualTo(1L)
+            assertThat(childrenGroup.size).isEqualTo(2)
+        }
+        allGroupView.childrenGroup.toList().run {
+            assertThat(component1().groupName).isEqualTo("공과대학")
+            assertThat(component1().groupId).isEqualTo(2L)
+            assertThat(component1().childrenGroup.size).isEqualTo(1)
+            assertThat(component1().childrenGroup.toList()[0].groupName).isEqualTo("컴퓨터공학과")
+            assertThat(component2().groupName).isEqualTo("문과대학")
+            assertThat(component2().groupId).isEqualTo(3L)
+            assertThat(component2().childrenGroup.size).isEqualTo(0)
+        }
     }
 }

@@ -6,6 +6,7 @@ import javax.persistence.*
 @Table(name = "groups")
 class Group(
 
+    @Column(unique = true)
     var groupName: String,
 
     @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "parent_id") var parentGroup: Group? = null,
@@ -15,18 +16,18 @@ class Group(
     val id: Long? = null
 ) : BaseEntity() {
     @OneToMany(mappedBy = "parentGroup")
-    val childGroup: MutableSet<Group> = HashSet()
+    val childrenGroup: MutableSet<Group> = HashSet()
 
     @OneToMany(mappedBy = "group")
     val groupEmployee: MutableSet<GroupEmployee> = HashSet()
 
     fun changeParentGroup(parentGroup: Group?) {
-        parentGroup?.childGroup?.add(this)
+        parentGroup?.childrenGroup?.add(this)
         this.parentGroup = parentGroup
     }
 
     fun removeParentGroup() {
-        this.parentGroup?.childGroup?.remove(this)
+        this.parentGroup?.childrenGroup?.remove(this)
         this.parentGroup = null
     }
 }

@@ -24,7 +24,7 @@ internal class GroupRepositoryTest @Autowired constructor(
         findGroup!!.run {
             assertThat(groupName).isEqualTo("조직도")
             assertThat(parentGroup).isNull()
-            assertThat(childGroup.size).isEqualTo(0)
+            assertThat(childrenGroup.size).isEqualTo(0)
             assertThat(groupEmployee.size).isEqualTo(0)
         }
 
@@ -70,19 +70,34 @@ internal class GroupRepositoryTest @Autowired constructor(
         findCloudDevelopCenter!!.run {
             assertThat(groupName).isEqualTo("클라우드개발센터")
             println("Lazy loading이라 추가적인 쿼리가 발생합니다.")
-            assertThat(childGroup.size).isEqualTo(5)
+            assertThat(childrenGroup.size).isEqualTo(5)
 
-            childGroup.forEach { group ->
+            childrenGroup.forEach { group ->
                 println(group.groupName)
                 assertThat(group.parentGroup).isSameAs(findCloudDevelopCenter)
                 if (group.groupName == "클라우드플랫폼개발랩") {
                     println("하위 그룹들을 가져올때 lazy loading이기 때문에 한번더 쿼리가 실행됩니다.")
-                    assertThat(group.childGroup.size).isEqualTo(3)
+                    assertThat(group.childrenGroup.size).isEqualTo(3)
                 }
             }
         }
 
+        testEntityManager.clear()
 
+        println("영속성컨텍스트를 다시한번 초기화합니다. 아래의 쿼리에서는 N+1발생하지 않습니다. 모든데이터를 한번에 가져왔기때문에")
+        val rootGroup: Group = groupRepository.findAll().single { group -> group.groupName == "클라우드개발센터" }
+        rootGroup.run {
+            assertThat(groupName).isEqualTo("클라우드개발센터")
+            assertThat(childrenGroup.size).isEqualTo(5)
+
+            childrenGroup.forEach { group ->
+                println(group.groupName)
+                assertThat(group.parentGroup).isSameAs(rootGroup)
+                if (group.groupName == "클라우드플랫폼개발랩") {
+                    assertThat(group.childrenGroup.size).isEqualTo(3)
+                }
+            }
+        }
     }
 
 }
