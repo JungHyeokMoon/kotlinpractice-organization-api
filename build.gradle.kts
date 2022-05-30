@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
 	id("org.springframework.boot") version "2.6.7"
@@ -17,7 +18,7 @@ allOpen {
 }
 
 group = "com.example"
-version = "0.0.1-SNAPSHOT"
+//version = "1.0.0"
 java.sourceCompatibility = JavaVersion.VERSION_11
 
 val mapstructVersion = "1.4.2.Final"

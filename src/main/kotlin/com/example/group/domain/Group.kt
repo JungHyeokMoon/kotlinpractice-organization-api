@@ -9,6 +9,8 @@ class Group(
     @Column(unique = true)
     var groupName: String,
 
+    var inUse: Boolean = true,
+
     @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "parent_id") var parentGroup: Group? = null,
 
     @Id

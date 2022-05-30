@@ -6,3 +6,7 @@
 + Spring Boot, JPA
 + Library
   + mapstruct
+
+### 실행방법
+1. `./gradlew clean bootJar`
+2. `docker-compose up -d`

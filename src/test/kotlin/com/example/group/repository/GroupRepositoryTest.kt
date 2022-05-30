@@ -38,28 +38,28 @@ internal class GroupRepositoryTest @Autowired constructor(
         val cloudDevelopCenter = Group("클라우드개발센터")
         groupRepository.save(cloudDevelopCenter)
 
-        val commonDevelopLab = Group("공통개발랩", cloudDevelopCenter)
+        val commonDevelopLab = Group("공통개발랩", parentGroup = cloudDevelopCenter)
         groupRepository.save(commonDevelopLab)
 
-        val cloudCommonDevelopLab = Group("클라우드공통개발랩", cloudDevelopCenter)
+        val cloudCommonDevelopLab = Group("클라우드공통개발랩", parentGroup = cloudDevelopCenter)
         groupRepository.save(cloudCommonDevelopLab)
 
-        val cloudDataPlatformDevelopLab = Group("클라우드데이터플랫폼개발랩", cloudDevelopCenter)
+        val cloudDataPlatformDevelopLab = Group("클라우드데이터플랫폼개발랩", parentGroup = cloudDevelopCenter)
         groupRepository.save(cloudDataPlatformDevelopLab)
 
-        val cloudInfraDevelopLab = Group("클라우드인프라개발랩", cloudDevelopCenter)
+        val cloudInfraDevelopLab = Group("클라우드인프라개발랩", parentGroup = cloudDevelopCenter)
         groupRepository.save(cloudInfraDevelopLab)
 
-        val cloudPlatformDevelopLab = Group("클라우드플랫폼개발랩", cloudDevelopCenter)
+        val cloudPlatformDevelopLab = Group("클라우드플랫폼개발랩", parentGroup = cloudDevelopCenter)
         groupRepository.save(cloudPlatformDevelopLab)
 
-        val messagingPlatFormDevelopTeam = Group("메세징플랫폼개발팀", cloudPlatformDevelopLab)
+        val messagingPlatFormDevelopTeam = Group("메세징플랫폼개발팀", parentGroup = cloudPlatformDevelopLab)
         groupRepository.save(messagingPlatFormDevelopTeam)
 
-        val monitoringPlatformDevelopTeam = Group("모니터링플랫폼개발팀", cloudPlatformDevelopLab)
+        val monitoringPlatformDevelopTeam = Group("모니터링플랫폼개발팀", parentGroup = cloudPlatformDevelopLab)
         groupRepository.save(monitoringPlatformDevelopTeam)
 
-        val infraPlatformDevelopTeam = Group("인프라플랫폼개발팀", cloudPlatformDevelopLab)
+        val infraPlatformDevelopTeam = Group("인프라플랫폼개발팀", parentGroup = cloudPlatformDevelopLab)
         groupRepository.save(infraPlatformDevelopTeam)
 
         testEntityManager.clear()

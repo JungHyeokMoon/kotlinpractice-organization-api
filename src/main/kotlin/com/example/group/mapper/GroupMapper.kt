@@ -1,9 +1,9 @@
 package com.example.group.mapper
 
-import com.example.group.data.GroupCreateRequestDTO
-import com.example.group.data.GroupCreateResponseDTO
-import com.example.group.data.GroupHierarchyViewDTO
-import com.example.group.data.GroupParentChangeResponseDTO
+import com.example.group.data.group.GroupCreateRequestDTO
+import com.example.group.data.group.GroupCreateResponseDTO
+import com.example.group.data.group.GroupHierarchyViewDTO
+import com.example.group.data.group.GroupParentChangeResponseDTO
 import com.example.group.domain.Group
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping

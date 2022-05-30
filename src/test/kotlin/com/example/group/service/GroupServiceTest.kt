@@ -1,9 +1,9 @@
 package com.example.group.service
 
-import com.example.group.data.GroupCreateRequestDTO
-import com.example.group.data.GroupCreateResponseDTO
-import com.example.group.data.GroupParentChangeRequestDTO
-import com.example.group.data.RemoveParentGroupRequest
+import com.example.group.data.group.GroupCreateRequestDTO
+import com.example.group.data.group.GroupCreateResponseDTO
+import com.example.group.data.group.GroupParentChangeRequestDTO
+import com.example.group.data.group.RemoveParentGroupRequest
 import com.example.group.domain.Group
 import com.example.group.exception.CustomException
 import com.example.group.mapper.GroupMapper
@@ -142,7 +142,7 @@ internal class GroupServiceTest {
 
         val removeParentGroupRequest = RemoveParentGroupRequest(2L)
         val parentGroup = Group("공과대학", id = 1L)
-        val group = Group("컴퓨터공학과", parentGroup, id = 2L)
+        val group = Group("컴퓨터공학과", parentGroup = parentGroup, id = 2L)
         parentGroup.childrenGroup.add(group)
 
         every { groupRepository.findByIdOrNull(removeParentGroupRequest.groupId) } returns group
@@ -181,11 +181,11 @@ internal class GroupServiceTest {
         this.groupMapper = GroupMapperImpl()
         this.groupService = GroupService(groupRepository, groupMapper)
         val rootGroup = Group("조직도", id = 1L)
-        val tech = Group("공과대학", rootGroup, 2L)
-        val liberal = Group("문과대학", rootGroup, 3L)
+        val tech = Group("공과대학", parentGroup = rootGroup, id = 2L)
+        val liberal = Group("문과대학", parentGroup = rootGroup, id = 3L)
         rootGroup.childrenGroup.add(tech)
         rootGroup.childrenGroup.add(liberal)
-        val computer = Group("컴퓨터공학과", tech, 4L)
+        val computer = Group("컴퓨터공학과", parentGroup = tech, id = 4L)
         tech.childrenGroup.add(computer)
         every { groupRepository.findAll() } returns listOf(rootGroup, tech, liberal, computer)
 
@@ -203,6 +203,37 @@ internal class GroupServiceTest {
             assertThat(component2().groupName).isEqualTo("문과대학")
             assertThat(component2().groupId).isEqualTo(3L)
             assertThat(component2().childrenGroup.size).isEqualTo(0)
+        }
+    }
+
+    @Test
+    fun `allGroupView Test - 조직 전체조회시에, inUse가 false인것을 포함한다면, service의 결과로는 포함하지않도록 합니다`() {
+        this.groupMapper = GroupMapperImpl()
+        this.groupService = GroupService(groupRepository, groupMapper)
+        val rootGroup = Group("조직도", id = 1L)
+        val tech = Group("공과대학", inUse = false, parentGroup = rootGroup, id = 2L)
+        val liberal = Group("문과대학", parentGroup = rootGroup, id = 3L)
+        rootGroup.childrenGroup.add(tech)
+        rootGroup.childrenGroup.add(liberal)
+
+        val management = Group("경영대학", inUse = true, parentGroup = liberal, id = 4L)
+        val korean = Group("국문학과", inUse = false, parentGroup = liberal, id = 5L)
+        liberal.childrenGroup.add(management)
+        liberal.childrenGroup.add(korean)
+
+        every { groupRepository.findAll() } returns listOf(rootGroup, tech, liberal)
+
+        val allGroupView = groupService.allGroupView()
+
+        allGroupView.run {
+            assertThat(childrenGroup.size).isEqualTo(1)
+        }
+
+        allGroupView.childrenGroup.toList().run {
+            assertThat(component1().groupName).isEqualTo("문과대학")
+            assertThat(component1().groupId).isEqualTo(3L)
+
+            assertThat(component1().childrenGroup.size).isEqualTo(1)
         }
     }
 }

@@ -1,0 +1,10 @@
+## 작성예정입니다.
+
+version: '3.9'
+services:
+  group:
+    container_name: group
+    build: ./
+    ports:
+      - "9000:9000"
+    restart: always

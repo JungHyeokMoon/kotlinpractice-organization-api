@@ -1,7 +1,12 @@
 spring:
+  application:
+    name: group-hierachy
   jpa:
     hibernate:
       ddl-auto: create
     properties:
       hibernate:
         default_batch_fetch_size: 100
+
+server:
+  port: 9000
