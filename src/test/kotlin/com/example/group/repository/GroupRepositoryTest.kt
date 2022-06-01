@@ -99,5 +99,4 @@ internal class GroupRepositoryTest @Autowired constructor(
             }
         }
     }
-
 }

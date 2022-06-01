@@ -5,6 +5,7 @@ import com.example.group.data.group.GroupCreateResponseDTO
 import com.example.group.data.group.GroupParentChangeRequestDTO
 import com.example.group.data.group.RemoveParentGroupRequest
 import com.example.group.domain.Group
+import com.example.group.enums.ErrorCode
 import com.example.group.exception.CustomException
 import com.example.group.mapper.GroupMapper
 import com.example.group.mapper.GroupMapperImpl
@@ -16,6 +17,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.assertj.core.api.Assertions.*
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
@@ -64,7 +66,7 @@ internal class GroupServiceTest {
         every { groupRepository.findByIdOrNull(groupParentChangeRequestDTO.groupId) } returns null
 
         val assertThrows = assertThrows<CustomException> { groupService.changeParent(groupParentChangeRequestDTO) }
-        Assertions.assertEquals(assertThrows.message, "그룹이 존재하지 않습니다.")
+        Assertions.assertEquals(assertThrows.message, ErrorCode.GROUP_NOT_EXIST_MESSAGE.message)
     }
 
     @Test
@@ -77,7 +79,7 @@ internal class GroupServiceTest {
         every { groupRepository.findByIdOrNull(groupParentChangeRequestDTO.parentId) } returns null
 
         val assertThrows = assertThrows<CustomException> { groupService.changeParent(groupParentChangeRequestDTO) }
-        Assertions.assertEquals(assertThrows.message, "부모그룹이 존재하지 않습니다.")
+        Assertions.assertEquals(assertThrows.message, ErrorCode.PARENT_GROUP_NOT_EXIST_MESSAGE.message)
     }
 
     @Test
@@ -132,7 +134,7 @@ internal class GroupServiceTest {
         val removeParentGroupRequest = RemoveParentGroupRequest(1L)
         every { groupRepository.findByIdOrNull(removeParentGroupRequest.groupId) } returns null
         val assertThrows = assertThrows<CustomException> { groupService.removeParentGroup(removeParentGroupRequest) }
-        assertThat(assertThrows.message).isEqualTo("그룹이 존재하지 않습니다.")
+        assertThat(assertThrows.message).isEqualTo(ErrorCode.GROUP_NOT_EXIST_MESSAGE.message)
     }
 
     @Test
@@ -235,5 +237,52 @@ internal class GroupServiceTest {
 
             assertThat(component1().childrenGroup.size).isEqualTo(1)
         }
+    }
+
+    @Test
+    fun `softDeleteGroup Test - groupId로 조회했을시, 존재하지 않을경우, 익셉션을 발생시킵니다`() {
+        this.groupMapper = GroupMapperImpl()
+        this.groupService = GroupService(groupRepository, groupMapper)
+
+        every { groupRepository.findByIdOrNull(1L) } returns null
+
+        val assertThrows = assertThrows<CustomException> { groupService.softDeleteGroup(1L) }
+        assertThat(assertThrows.message).isEqualTo(ErrorCode.GROUP_NOT_EXIST_MESSAGE.message)
+    }
+
+    @Test
+    fun `softDeleteGroup Test - group을 조회했는데, 하위 그룹이 존재할경우, 익셉션을 발생시킵니다`() {
+        this.groupMapper = GroupMapperImpl()
+        this.groupService = GroupService(groupRepository, groupMapper)
+
+        val findGroup = Group("그룹!!", true, null, 1L)
+        findGroup.childrenGroup.add(Group("하위그룹",true, findGroup,2L))
+        every { groupRepository.findByIdOrNull(1L) } returns findGroup
+
+        val assertThrows = assertThrows<CustomException> { groupService.softDeleteGroup(1L) }
+        assertThat( assertThrows.message).isEqualTo(ErrorCode.GROUP_HAS_CHILDREN_GROUP.message)
+    }
+
+    @Test
+    fun `softDeleteGroup test - 그룹을 조회했는데, 조직의 이름이 최상위 그룹의 이름이면, 그룹을 삭제할수 없습니다`(){
+        this.groupMapper = GroupMapperImpl()
+        this.groupService = GroupService(groupRepository, groupMapper)
+        val findGroup = Group("조직도", true, null, 1L)
+        every { groupRepository.findByIdOrNull(1L) } returns findGroup
+
+        val assertThrows = assertThrows<CustomException> {  groupService.softDeleteGroup(1L)}
+        assertThat(assertThrows.message).isEqualTo(ErrorCode.WANT_TO_DELETE_GROUP_IS_ROOT.message)
+    }
+
+    @Test
+    fun `softDeleteGroup Test - groupId로도 조회가되고, 하위그룹이 존재하지 않을경우 정상동작합니다`() {
+        this.groupMapper = GroupMapperImpl()
+        this.groupService= GroupService(groupRepository, groupMapper)
+        val findGroup = Group("조직도의 하위그룹",true, null, 2L )
+        every { groupRepository.findByIdOrNull(2L) } returns findGroup
+
+        groupService.softDeleteGroup(2L)
+
+        assertThat(findGroup.inUse).isEqualTo(false)
     }
 }

@@ -18,3 +18,8 @@ spring:
 #  org.hibernate.SQL: debug
 server:
   port: 9000
+
+# swagger를 off하기 위한 yml property값입니다.
+springdoc:
+  api-docs:
+    enabled: false

@@ -51,6 +51,9 @@ dependencies {
 	kapt("org.mapstruct:mapstruct-processor:${mapstructVersion}")
 	kaptTest("org.mapstruct:mapstruct-processor:${mapstructVersion}")
 
+	// https://mvnrepository.com/artifact/org.springdoc/springdoc-openapi-ui
+	implementation("org.springdoc:springdoc-openapi-ui:1.6.9")
+
 }
 
 tasks.withType<KotlinCompile> {

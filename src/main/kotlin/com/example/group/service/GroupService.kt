@@ -2,6 +2,7 @@ package com.example.group.service
 
 import com.example.group.data.group.*
 import com.example.group.domain.Group
+import com.example.group.enums.ErrorCode
 import com.example.group.exception.CustomException
 import com.example.group.mapper.GroupMapper
 import com.example.group.repository.GroupRepository
@@ -9,14 +10,14 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
-fun Group.filteringInUsePropertyEqualToTrue(){
+fun Group.filteringInUsePropertyEqualToTrue() {
     val iterator = childrenGroup.iterator()
-    while (iterator.hasNext()){
+    while (iterator.hasNext()) {
         val childGroup = iterator.next()
 
-        if(!childGroup.inUse){
+        if (!childGroup.inUse) {
             iterator.remove()
-        }else{
+        } else {
             childGroup.filteringInUsePropertyEqualToTrue()
         }
     }
@@ -29,10 +30,7 @@ class GroupService(
     private val groupMapper: GroupMapper
 ) {
 
-    private val GROUP_NOT_EXIST_MESSAGE = "그룹이 존재하지 않습니다."
-    private val PARENT_GROUP_NOT_EXIST_MESSAGE = "부모그룹이 존재하지 않습니다."
-
-    private val ROOT_GROUP="조직도"
+    private val ROOT_GROUP = "조직도"
 
     @Transactional
     fun createGroup(createRequestDTO: GroupCreateRequestDTO): GroupCreateResponseDTO {
@@ -43,11 +41,11 @@ class GroupService(
     @Transactional
     fun changeParent(groupParentChangeRequestDTO: GroupParentChangeRequestDTO): GroupParentChangeResponseDTO {
         val group = groupRepository.findByIdOrNull(groupParentChangeRequestDTO.groupId) ?: throw CustomException(
-            GROUP_NOT_EXIST_MESSAGE
+            ErrorCode.GROUP_NOT_EXIST_MESSAGE
         )
 
         val parentGroup = groupRepository.findByIdOrNull(groupParentChangeRequestDTO.parentId) ?: throw CustomException(
-            PARENT_GROUP_NOT_EXIST_MESSAGE
+            ErrorCode.PARENT_GROUP_NOT_EXIST_MESSAGE
         )
 
         group.changeParentGroup(parentGroup)
@@ -57,7 +55,7 @@ class GroupService(
     @Transactional
     fun removeParentGroup(removeParentGroupRequest: RemoveParentGroupRequest) {
         val group = groupRepository.findByIdOrNull(removeParentGroupRequest.groupId) ?: throw CustomException(
-            GROUP_NOT_EXIST_MESSAGE
+            ErrorCode.GROUP_NOT_EXIST_MESSAGE
         )
 
         group.removeParentGroup()
@@ -68,11 +66,26 @@ class GroupService(
      * inUse가 true인 group만 내보냅니다.
      */
     fun allGroupView(): GroupHierarchyViewDTO {
-        val rootGroup= groupRepository.findAll()
+        val rootGroup = groupRepository.findAll()
             .singleOrNull { group -> group.groupName == ROOT_GROUP }
 
         rootGroup?.filteringInUsePropertyEqualToTrue()
 
         return groupMapper.toGroupHierarchyViewDTO(rootGroup)
+    }
+
+    @Transactional
+    fun softDeleteGroup(groupId: Long) {
+        val deletedGroup = groupRepository.findByIdOrNull(groupId) ?: throw CustomException(ErrorCode.GROUP_NOT_EXIST_MESSAGE)
+
+        if(deletedGroup.childrenGroup.size!=0){
+            throw CustomException(ErrorCode.GROUP_HAS_CHILDREN_GROUP)
+        }
+
+        if(deletedGroup.groupName==ROOT_GROUP){
+            throw CustomException(ErrorCode.WANT_TO_DELETE_GROUP_IS_ROOT)
+        }
+
+        deletedGroup.inUse = false
     }
 }
