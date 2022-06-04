@@ -6,13 +6,17 @@ import javax.persistence.*
 @Entity
 class Employee(
     var name: String,
-    @Enumerated(value = EnumType.STRING) var position: Position?,
-    var nickname: String?,
-    var phoneNumber: String?,
+    @Enumerated(value = EnumType.STRING) var position: Position? = null,
+    var nickname: String? = null,
+    var phoneNumber: String? = null,
     var inUse: Boolean = true,
-    var responsibilities: String?, //담당업무
+    var responsibilities: String? = null, //담당업무
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) val id: Long? = null
-) : BaseEntity() {
+) : BaseEntity()
+/*
+Employee쪽에서 groupEmployee를 참조할 상황이 별로 없기때문에, 없애는게 맞다고 판단됨..
+{
     @OneToMany(mappedBy = "employee")
     var groupEmployee: MutableSet<GroupEmployee> = HashSet()
 }
+ */

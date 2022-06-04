@@ -17,7 +17,6 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.assertj.core.api.Assertions.*
 import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
@@ -34,26 +33,45 @@ internal class GroupServiceTest {
     private lateinit var groupService: GroupService
 
     @Test
-    fun `group createTest`() {
-        groupMapper = mockk()
+    fun `group createTest - group Entity가 같은 이름을 가졌을경우, 익셉션을 발생시킵니다`() {
+        this.groupMapper = GroupMapperImpl()
         this.groupService = GroupService(groupRepository, groupMapper)
 
         val groupCreateRequestDTO = GroupCreateRequestDTO("testGroup")
-        val group = Group(groupCreateRequestDTO.groupName, id = 1L)
-        val groupCreateResponseDTO =
-            GroupCreateResponseDTO(groupCreateRequestDTO.groupName, group.id!!) //이거 스터빙을 안하고싶은데 partial Mocking이안됨
+        every {  groupRepository.findByGroupName(any())} returns Group("testGroup")
 
-        every { groupMapper.toEntity(groupCreateRequestDTO) } returns group
-        every { groupMapper.toGroupCreateResponseDTO(group) } answers { groupCreateResponseDTO }
+        val assertThrows = assertThrows<CustomException> { groupService.createGroup(groupCreateRequestDTO) }
+        assertThat(assertThrows.message).isEqualTo(ErrorCode.GROUP_NAME_AlREADY_EXIST.message)
+    }
+
+    @Test
+    fun `group createTest`() {
+        this.groupMapper = mockk()
+        this.groupService = GroupService(groupRepository, groupMapper)
+
+        val groupCreateRequestDTO = GroupCreateRequestDTO("testGroup")
+        val createdGroup = Group(groupCreateRequestDTO.groupName)
+        val savedGroup = Group(groupCreateRequestDTO.groupName, id = 1L)
+        val groupCreateResponseDTO =
+            GroupCreateResponseDTO(
+                groupCreateRequestDTO.groupName,
+                true,
+                savedGroup.id!!
+            ) //이거 스터빙을 안하고싶은데 partial Mocking이안됨
+
+        every { groupMapper.toEntity(groupCreateRequestDTO) } returns createdGroup
+        every { groupRepository.save(createdGroup) } returns savedGroup
+        every { groupRepository.findByGroupName(any()) } returns null
+        every { groupMapper.toGroupCreateResponseDTO(savedGroup) } answers { groupCreateResponseDTO }
 
         groupService.createGroup(groupCreateRequestDTO)
 
         verify { groupMapper.toEntity(groupCreateRequestDTO) }
-        verify { groupMapper.toGroupCreateResponseDTO(group) }
+        verify { groupMapper.toGroupCreateResponseDTO(savedGroup) }
 
         groupService.createGroup(groupCreateRequestDTO)
             .run {
-                assertThat(groupId).isEqualTo(group.id)
+                assertThat(groupId).isEqualTo(savedGroup.id)
                 assertThat(groupName).isEqualTo(groupCreateRequestDTO.groupName)
             }
     }
@@ -256,29 +274,29 @@ internal class GroupServiceTest {
         this.groupService = GroupService(groupRepository, groupMapper)
 
         val findGroup = Group("그룹!!", true, null, 1L)
-        findGroup.childrenGroup.add(Group("하위그룹",true, findGroup,2L))
+        findGroup.childrenGroup.add(Group("하위그룹", true, findGroup, 2L))
         every { groupRepository.findByIdOrNull(1L) } returns findGroup
 
         val assertThrows = assertThrows<CustomException> { groupService.softDeleteGroup(1L) }
-        assertThat( assertThrows.message).isEqualTo(ErrorCode.GROUP_HAS_CHILDREN_GROUP.message)
+        assertThat(assertThrows.message).isEqualTo(ErrorCode.GROUP_HAS_CHILDREN_GROUP.message)
     }
 
     @Test
-    fun `softDeleteGroup test - 그룹을 조회했는데, 조직의 이름이 최상위 그룹의 이름이면, 그룹을 삭제할수 없습니다`(){
+    fun `softDeleteGroup test - 그룹을 조회했는데, 조직의 이름이 최상위 그룹의 이름이면, 그룹을 삭제할수 없습니다`() {
         this.groupMapper = GroupMapperImpl()
         this.groupService = GroupService(groupRepository, groupMapper)
         val findGroup = Group("조직도", true, null, 1L)
         every { groupRepository.findByIdOrNull(1L) } returns findGroup
 
-        val assertThrows = assertThrows<CustomException> {  groupService.softDeleteGroup(1L)}
+        val assertThrows = assertThrows<CustomException> { groupService.softDeleteGroup(1L) }
         assertThat(assertThrows.message).isEqualTo(ErrorCode.WANT_TO_DELETE_GROUP_IS_ROOT.message)
     }
 
     @Test
     fun `softDeleteGroup Test - groupId로도 조회가되고, 하위그룹이 존재하지 않을경우 정상동작합니다`() {
         this.groupMapper = GroupMapperImpl()
-        this.groupService= GroupService(groupRepository, groupMapper)
-        val findGroup = Group("조직도의 하위그룹",true, null, 2L )
+        this.groupService = GroupService(groupRepository, groupMapper)
+        val findGroup = Group("조직도의 하위그룹", true, null, 2L)
         every { groupRepository.findByIdOrNull(2L) } returns findGroup
 
         groupService.softDeleteGroup(2L)

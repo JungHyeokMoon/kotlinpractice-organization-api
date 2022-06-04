@@ -7,6 +7,12 @@ spring:
     properties:
       hibernate:
         default_batch_fetch_size: 100
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    username: root
+    password: rkskekfk1234
+    url: ${MYSQL_URL:jdbc:mysql://localhost:3306/group}
 
 server:
   port: 9000

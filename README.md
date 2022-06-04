@@ -13,8 +13,13 @@
 
 ### 실행방법
 1. `./gradlew clean bootJar`
-2. `docker build -t group .`
-3. `docker-compose up -d`
+2. `docker-compose up -d`
 
 ### 주의사항
 1. 실제 DB와 연결을 해서 사용할때, 최상위 그룹을 조직도로 만들고 사용하세요.
+
+### 추가할 예정인 것들
+1. spring-doc에 Controller에 노출된 API 리스트들 제공
+2. spring-boot-actuator
+3. spring-flyway
+4. prometheus

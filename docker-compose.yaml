@@ -1,8 +1,25 @@
 version: '3.9'
 services:
+  db:
+    image: mysql:8.0.29
+    container_name: group_mysql
+    restart: always
+    ports:
+      - "3306:3306"
+    platform: linux/x86_64
+    environment:
+      MYSQL_DATABASE: group
+      MYSQL_ROOT_PASSWORD: rkskekfk1234
+
   group:
-    image: group
+    build:
+      context: .
     container_name: group
     ports:
       - "9000:9000"
     restart: always
+    environment:
+      MYSQL_URL: jdbc:mysql://db/group
+    depends_on:
+      - db
+

@@ -34,8 +34,13 @@ class GroupService(
 
     @Transactional
     fun createGroup(createRequestDTO: GroupCreateRequestDTO): GroupCreateResponseDTO {
+
+        if(groupRepository.findByGroupName(createRequestDTO.groupName)!=null){
+            throw CustomException(ErrorCode.GROUP_NAME_AlREADY_EXIST)
+        }
+
         val group = groupMapper.toEntity(createRequestDTO)
-        return groupMapper.toGroupCreateResponseDTO(group)
+        return groupMapper.toGroupCreateResponseDTO(groupRepository.save(group))
     }
 
     @Transactional
