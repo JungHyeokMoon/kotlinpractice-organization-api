@@ -1,18 +1,20 @@
 spring:
   application:
-    name: group-hierachy
+    name: organization-hierachy
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: validate
     properties:
       hibernate:
         default_batch_fetch_size: 100
     database-platform: org.hibernate.dialect.MySQL8Dialect
   datasource:
-    driver-class-name: com.mysql.jdbc.Driver
+    driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
     password: rkskekfk1234
-    url: ${MYSQL_URL:jdbc:mysql://localhost:3306/group}
-
+    url: ${MYSQL_URL:jdbc:mysql://localhost:3306/organization?allowPublicKeyRetrieval=true}
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
 server:
   port: 9000

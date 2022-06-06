@@ -1,8 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
-	id("org.springframework.boot") version "2.6.7"
+	id("org.springframework.boot") version "2.7.0"
 	id("io.spring.dependency-management") version "1.0.11.RELEASE"
 	kotlin("jvm") version "1.6.21"
 	kotlin("plugin.spring") version "1.6.21"
@@ -56,6 +55,13 @@ dependencies {
 
 	// https://mvnrepository.com/artifact/mysql/mysql-connector-java
 	implementation("mysql:mysql-connector-java:8.0.29")
+
+	// https://mvnrepository.com/artifact/org.flywaydb/flyway-core
+	implementation("org.flywaydb:flyway-core:8.5.12")
+
+	// https://mvnrepository.com/artifact/org.flywaydb/flyway-mysql
+	implementation("org.flywaydb:flyway-mysql:8.5.12")
+
 
 }
 

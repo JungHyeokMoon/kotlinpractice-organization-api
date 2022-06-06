@@ -1,1 +1,1 @@
-rootProject.name = "group"
+rootProject.name = "organization"
