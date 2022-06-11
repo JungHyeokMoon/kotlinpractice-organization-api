@@ -26,7 +26,7 @@ class Organization(
     val childrenOrganization: MutableSet<Organization> = HashSet()
 
     @OneToMany(mappedBy = "organization")
-    val organizationEmployee: MutableSet<OrganizationEmployee> = HashSet()
+    val organizationEmployees: MutableSet<OrganizationEmployee> = HashSet()
 
     fun changeParentOrganization(parentOrganization: Organization?) {
         parentOrganization?.childrenOrganization?.add(this)

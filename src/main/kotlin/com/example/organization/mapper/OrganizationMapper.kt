@@ -1,15 +1,13 @@
 package com.example.organization.mapper
 
-import com.example.organization.data.organization.OrganizationCreateRequestDTO
-import com.example.organization.data.organization.OrganizationCreateResponseDTO
-import com.example.organization.data.organization.OrganizationHierarchyViewDTO
-import com.example.organization.data.organization.OrganizationParentChangeResponseDTO
+import com.example.organization.data.organization.*
 import com.example.organization.domain.Organization
+import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", injectionStrategy = InjectionStrategy.CONSTRUCTOR, uses = [OrganizationEmployeeMapper::class])
 interface OrganizationMapper {
 
     fun toEntity(organizationCreateRequestDTO: OrganizationCreateRequestDTO): Organization
@@ -29,4 +27,9 @@ interface OrganizationMapper {
         Mapping(target = "organizationId", source = "id")
     )
     fun toOrganizationHierarchyViewDTO(organization: Organization?): OrganizationHierarchyViewDTO
+
+    @Mappings(
+        Mapping(target = "organizationId", source = "id"),
+    )
+    fun toOrganizationWithEmployeeResponseDTO(organization: Organization?): OrganizationWithEmployeeResponseDTO?
 }

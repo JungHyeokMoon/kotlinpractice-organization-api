@@ -4,7 +4,9 @@ import com.example.organization.data.employee.EmployeeCreateRequestDTO
 import com.example.organization.domain.Employee
 import com.example.organization.domain.Organization
 import com.example.organization.domain.OrganizationEmployee
+import com.example.organization.domain.WorkPeriod
 import com.example.organization.enums.ErrorCode
+import com.example.organization.enums.Position
 import com.example.organization.exception.CustomException
 import com.example.organization.mapper.EmployeeMapper
 import com.example.organization.mapper.EmployeeMapperImpl
@@ -17,12 +19,13 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
-import org.assertj.core.api.Assertions.*
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.data.repository.findByIdOrNull
+import java.time.LocalDateTime
 
 @ExtendWith(MockKExtension::class)
 internal class EmployeeServiceTest {
@@ -42,7 +45,8 @@ internal class EmployeeServiceTest {
     ) {
         val employeeService =
             EmployeeService(employeeRepository, organizationEmployeeRepository, groupRepository, employeeMapper)
-        val employeeCreateRequestDTO = EmployeeCreateRequestDTO(name = "JungHyeok", organizationId = 1L)
+        val employeeCreateRequestDTO =
+            EmployeeCreateRequestDTO(name = "JungHyeok", position = Position.JUNIOR, organizationId = 1L)
 
         every { groupRepository.findByIdOrNull(any()) } returns null
 
@@ -57,10 +61,11 @@ internal class EmployeeServiceTest {
         @RelaxedMockK groupRepository: OrganizationRepository,
     ) {
 
-        val groupService = EmployeeService(employeeRepository, organizationEmployeeRepository, groupRepository, employeeMapper)
-        val employeeCreateRequestDTO = EmployeeCreateRequestDTO(name = "JungHyeok")
+        val groupService =
+            EmployeeService(employeeRepository, organizationEmployeeRepository, groupRepository, employeeMapper)
+        val employeeCreateRequestDTO = EmployeeCreateRequestDTO(name = "JungHyeok", position = Position.JUNIOR)
 
-        val savedEmployee = Employee(employeeCreateRequestDTO.name, id = 1L)
+        val savedEmployee = Employee(employeeCreateRequestDTO.name, position = Position.JUNIOR, id = 1L)
         every { employeeRepository.save(any()) } returns savedEmployee
 
         val joinEmployee = groupService.joinEmployee(employeeCreateRequestDTO)
@@ -69,7 +74,7 @@ internal class EmployeeServiceTest {
             assertThat(id).isEqualTo(1L)
             assertThat(name).isEqualTo(employeeCreateRequestDTO.name)
             assertThat(inUse).isEqualTo(true)
-            assertThat(position).isNull()
+            assertThat(position).isEqualTo(Position.JUNIOR.toString())
             assertThat(phoneNumber).isNull()
             assertThat(responsibilities).isNull()
             assertThat(organizationId).isNull()
@@ -85,14 +90,17 @@ internal class EmployeeServiceTest {
         @MockK organizationEmployeeRepository: OrganizationEmployeeRepository,
         @MockK organizationRepository: OrganizationRepository,
     ) {
-        val groupService = EmployeeService(employeeRepository, organizationEmployeeRepository, organizationRepository, employeeMapper)
-        val employeeCreateRequestDTO = EmployeeCreateRequestDTO(name = "JungHyeok", organizationId = 1L)
+        val groupService =
+            EmployeeService(employeeRepository, organizationEmployeeRepository, organizationRepository, employeeMapper)
+        val employeeCreateRequestDTO =
+            EmployeeCreateRequestDTO(name = "JungHyeok", organizationId = 1L, position = Position.JUNIOR)
 
         val findGroup = Organization("조직도", id = 1L)
-        val savedEmployee = Employee(employeeCreateRequestDTO.name, id = 1L)
-        val savedGroupEmployee = OrganizationEmployee(findGroup, savedEmployee, 1L)
+        val savedEmployee = Employee(employeeCreateRequestDTO.name, position = Position.JUNIOR, id = 1L)
+        val savedGroupEmployee =
+            OrganizationEmployee(findGroup, savedEmployee, workPeriod = WorkPeriod(LocalDateTime.now(), null), id = 1L)
 
-        every { organizationRepository.findByIdOrNull(employeeCreateRequestDTO.organizationId) }returns findGroup
+        every { organizationRepository.findByIdOrNull(employeeCreateRequestDTO.organizationId) } returns findGroup
         every { employeeRepository.save(any()) } returns savedEmployee
         every { organizationEmployeeRepository.save(any()) } returns savedGroupEmployee
 
@@ -102,7 +110,7 @@ internal class EmployeeServiceTest {
             assertThat(id).isEqualTo(1L)
             assertThat(name).isEqualTo(employeeCreateRequestDTO.name)
             assertThat(inUse).isEqualTo(true)
-            assertThat(position).isNull()
+            assertThat(position).isEqualTo(Position.JUNIOR.toString())
             assertThat(phoneNumber).isNull()
             assertThat(responsibilities).isNull()
             assertThat(organizationId).isEqualTo(1L)

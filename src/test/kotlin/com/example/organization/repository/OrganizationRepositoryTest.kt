@@ -3,12 +3,15 @@ package com.example.organization.repository
 import com.example.organization.domain.Employee
 import com.example.organization.domain.Organization
 import com.example.organization.domain.OrganizationEmployee
-import org.assertj.core.api.Assertions.*
+import com.example.organization.domain.WorkPeriod
+import com.example.organization.enums.Position
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager
 import org.springframework.data.repository.findByIdOrNull
+import java.time.LocalDateTime
 
 @DataJpaTest
 internal class OrganizationRepositoryTest @Autowired constructor(
@@ -27,7 +30,7 @@ internal class OrganizationRepositoryTest @Autowired constructor(
             assertThat(organizationName).isEqualTo("조직도")
             assertThat(parentOrganization).isNull()
             assertThat(childrenOrganization.size).isEqualTo(0)
-            assertThat(organizationEmployee.size).isEqualTo(0)
+            assertThat(organizationEmployees.size).isEqualTo(0)
         }
 
         val findByGroupName = groupRepository.findByOrganizationName("조직도")
@@ -103,24 +106,26 @@ internal class OrganizationRepositoryTest @Autowired constructor(
     }
 
     @Test
-    fun `findGroupEmployee test - queryCheck`(){
+    fun `findGroupEmployee test - queryCheck`() {
         val group = Organization("조직도")
         testEntityManager.persist(group)
 
-        val employee1 = Employee("jh1")
-        val employee2 = Employee("jh2", inUse = false)
-        val employee3 = Employee("jh3")
-        val employee4 = Employee("jh4")
+        val employee1 = Employee("jh1", position = Position.JUNIOR)
+        val employee2 = Employee("jh2", position = Position.JUNIOR)
+        val employee3 = Employee("jh3", position = Position.JUNIOR)
+        val employee4 = Employee("jh4", position = Position.JUNIOR)
 
         testEntityManager.persist(employee1)
         testEntityManager.persist(employee2)
         testEntityManager.persist(employee3)
         testEntityManager.persist(employee4)
 
-        val groupEmployee1 = OrganizationEmployee(group,employee1)
-        val groupEmployee2 = OrganizationEmployee(group,employee2)
-        val groupEmployee3 = OrganizationEmployee(group,employee3)
-        val groupEmployee4 = OrganizationEmployee(group,employee4)
+        val workPeriod = WorkPeriod(LocalDateTime.now(), null)
+
+        val groupEmployee1 = OrganizationEmployee(group, employee1, workPeriod)
+        val groupEmployee2 = OrganizationEmployee(group, employee2, workPeriod)
+        val groupEmployee3 = OrganizationEmployee(group, employee3, workPeriod)
+        val groupEmployee4 = OrganizationEmployee(group, employee4, workPeriod)
 
         testEntityManager.persist(groupEmployee1)
         testEntityManager.persist(groupEmployee2)
@@ -130,15 +135,16 @@ internal class OrganizationRepositoryTest @Autowired constructor(
         testEntityManager.flush()
         testEntityManager.clear()
 
-        val findGroup = groupRepository.findOrganizationWithEmployee(group.id!!, true)
+        val findGroup = groupRepository.findOrganizationWithEmployee(group.id!!)
         findGroup!!.run {
-            assertThat(organizationEmployee.size).isEqualTo(3)
-            organizationEmployee.toList().sortedBy { it.id }.run {
-                assertThat(component1().employee.name).isEqualTo(employee1.name)
-                assertThat(component2().employee.name).isEqualTo(employee3.name)
-                assertThat(component3().employee.name).isEqualTo(employee4.name)
-            }
+            assertThat(organizationEmployees.size).isEqualTo(4)
         }
+
+    }
+
+    @Test
+    fun `findGroupEmployee test - nullCheck`() {
+        assertThat(groupRepository.findOrganizationWithEmployee(1L)).isNull()
 
     }
 }

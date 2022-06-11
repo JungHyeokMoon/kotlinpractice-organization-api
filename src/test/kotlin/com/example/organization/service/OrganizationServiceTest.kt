@@ -4,10 +4,11 @@ package com.example.organization.service
 import com.example.organization.data.organization.OrganizationCreateRequestDTO
 import com.example.organization.data.organization.OrganizationCreateResponseDTO
 import com.example.organization.data.organization.OrganizationParentChangeRequestDTO
-import com.example.organization.data.organization.RemoveParentOrganizationRequest
+import com.example.organization.data.organization.RemoveParentOrganizationRequestDTO
 import com.example.organization.domain.Organization
 import com.example.organization.enums.ErrorCode
 import com.example.organization.exception.CustomException
+import com.example.organization.mapper.OrganizationEmployeeMapperImpl
 import com.example.organization.mapper.OrganizationMapper
 import com.example.organization.mapper.OrganizationMapperImpl
 
@@ -36,7 +37,7 @@ internal class OrganizationServiceTest {
 
     @Test
     fun `organization createTest - organization Entity가 같은 이름을 가졌을경우, 익셉션을 발생시킵니다`() {
-        this.organizationMapper = OrganizationMapperImpl()
+        this.organizationMapper = OrganizationMapperImpl(OrganizationEmployeeMapperImpl())
         this.organizationService = OrganizationService(organizationRepository, organizationMapper)
 
         val organizationCreateRequestDTO = OrganizationCreateRequestDTO("testorganization")
@@ -80,7 +81,7 @@ internal class OrganizationServiceTest {
 
     @Test
     fun `changeParent Test - failed(바꾸려는 그룹의 id가 존재하지 않을경우 실패합니다)`() {
-        organizationMapper = OrganizationMapperImpl()
+        organizationMapper = OrganizationMapperImpl(OrganizationEmployeeMapperImpl())
         this.organizationService = OrganizationService(organizationRepository, organizationMapper)
         val organizationParentChangeRequestDTO = OrganizationParentChangeRequestDTO(1L, 2L)
         every { organizationRepository.findByIdOrNull(organizationParentChangeRequestDTO.organizationId) } returns null
@@ -91,7 +92,7 @@ internal class OrganizationServiceTest {
 
     @Test
     fun `changeParent Test - fail( parentorganization을 찾았을경우 존재하지 않을시 실패합니다)`() {
-        organizationMapper = OrganizationMapperImpl()
+        organizationMapper = OrganizationMapperImpl(OrganizationEmployeeMapperImpl())
         this.organizationService = OrganizationService(organizationRepository, organizationMapper)
         val organizationParentChangeRequestDTO = OrganizationParentChangeRequestDTO(1L, 2L)
         val organization = Organization("컴퓨터공학과", id = organizationParentChangeRequestDTO.organizationId)
@@ -104,7 +105,7 @@ internal class OrganizationServiceTest {
 
     @Test
     fun `changeParent Test - success(organization에 기존 parent가 존재할경우)`() {
-        organizationMapper = OrganizationMapperImpl()
+        organizationMapper = OrganizationMapperImpl(OrganizationEmployeeMapperImpl())
         this.organizationService = OrganizationService(organizationRepository, organizationMapper)
 
         val originalParentOrganization = Organization("사범대학", id = 3L)
@@ -127,7 +128,7 @@ internal class OrganizationServiceTest {
     @Test
     fun `changeParent Test - success(organization에 기존 parent가 존재하지 않을경우)`() {
 
-        organizationMapper = OrganizationMapperImpl()
+        organizationMapper = OrganizationMapperImpl(OrganizationEmployeeMapperImpl())
         this.organizationService = OrganizationService(organizationRepository, organizationMapper)
 
         val organizationParentChangeRequestDTO = OrganizationParentChangeRequestDTO(1L, 2L)
@@ -148,10 +149,10 @@ internal class OrganizationServiceTest {
     @Test
     fun `removeParentorganization test - fail(organization이 존재하지 않을경우 실패합니다)`() {
 
-        this.organizationMapper = OrganizationMapperImpl()
+        this.organizationMapper = OrganizationMapperImpl(OrganizationEmployeeMapperImpl())
         this.organizationService = OrganizationService(organizationRepository, organizationMapper)
 
-        val removeParentOrganizationRequest = RemoveParentOrganizationRequest(1L)
+        val removeParentOrganizationRequest = RemoveParentOrganizationRequestDTO(1L)
         every { organizationRepository.findByIdOrNull(removeParentOrganizationRequest.organizationId) } returns null
         val assertThrows = assertThrows<CustomException> { organizationService.removeParentOrganization(removeParentOrganizationRequest) }
         assertThat(assertThrows.message).isEqualTo(ErrorCode.ORGANIZATION_NOT_EXIST_MESSAGE.message)
@@ -159,10 +160,10 @@ internal class OrganizationServiceTest {
 
     @Test
     fun `removeParentorganization test - success(organization의 parentorganization이 존재할경우, parentorganization의 child에서 organization을 지우고, organization의 parentorganization을 null처리합니다)`() {
-        this.organizationMapper = OrganizationMapperImpl()
+        this.organizationMapper = OrganizationMapperImpl(OrganizationEmployeeMapperImpl())
         this.organizationService = OrganizationService(organizationRepository, organizationMapper)
 
-        val removeParentOrganizationRequest = RemoveParentOrganizationRequest(2L)
+        val removeParentOrganizationRequest = RemoveParentOrganizationRequestDTO(2L)
         val parentOrganization = Organization("공과대학", id = 1L)
         val organization = Organization("컴퓨터공학과", parentOrganization = parentOrganization, id = 2L)
         parentOrganization.childrenOrganization.add(organization)
@@ -177,10 +178,10 @@ internal class OrganizationServiceTest {
 
     @Test
     fun `removeParentorganization test - success(organization의 parentorganization이 없다 하더라도, 익셉션발생없이 organization엔티티의 removeParentorganization메서드가 정상동작합니다`() {
-        this.organizationMapper = OrganizationMapperImpl()
+        this.organizationMapper = OrganizationMapperImpl(OrganizationEmployeeMapperImpl())
         this.organizationService = OrganizationService(organizationRepository, organizationMapper)
 
-        val removeParentOrganizationRequest = RemoveParentOrganizationRequest(2L)
+        val removeParentOrganizationRequest = RemoveParentOrganizationRequestDTO(2L)
         val organization = Organization("컴퓨터공학과", id = 2L)
 
         every { organizationRepository.findByIdOrNull(removeParentOrganizationRequest.organizationId) } returns organization
@@ -192,7 +193,7 @@ internal class OrganizationServiceTest {
 
     @Test
     fun `allorganizationView test - 조직도 이름이 존재하지 않을시 null반환`() {
-        this.organizationMapper = OrganizationMapperImpl()
+        this.organizationMapper = OrganizationMapperImpl(OrganizationEmployeeMapperImpl())
         this.organizationService = OrganizationService(organizationRepository, organizationMapper)
         every { organizationRepository.findAll() } returns emptyList<Organization>()
         assertThat(organizationService.allOrganizationView()).isNull()
@@ -200,7 +201,7 @@ internal class OrganizationServiceTest {
 
     @Test
     fun `allorganizationView test - 조직도 이름이 존재할때, 그룹계층구조를 반환합니다`() {
-        this.organizationMapper = OrganizationMapperImpl()
+        this.organizationMapper = OrganizationMapperImpl(OrganizationEmployeeMapperImpl())
         this.organizationService = OrganizationService(organizationRepository, organizationMapper)
         val rootOrganization = Organization("조직도", id = 1L)
         val tech = Organization("공과대학", parentOrganization = rootOrganization, id = 2L)
@@ -230,7 +231,7 @@ internal class OrganizationServiceTest {
 
     @Test
     fun `allorganizationView Test - 조직 전체조회시에, inUse가 false인것을 포함한다면, service의 결과로는 포함하지않도록 합니다`() {
-        this.organizationMapper = OrganizationMapperImpl()
+        this.organizationMapper = OrganizationMapperImpl(OrganizationEmployeeMapperImpl())
         this.organizationService = OrganizationService(organizationRepository, organizationMapper)
         val rootOrganization = Organization("조직도", id = 1L)
         val tech = Organization("공과대학", inUse = false, parentOrganization = rootOrganization, id = 2L)
@@ -261,7 +262,7 @@ internal class OrganizationServiceTest {
 
     @Test
     fun `softDeleteorganization Test - organizationId로 조회했을시, 존재하지 않을경우, 익셉션을 발생시킵니다`() {
-        this.organizationMapper = OrganizationMapperImpl()
+        this.organizationMapper = OrganizationMapperImpl(OrganizationEmployeeMapperImpl())
         this.organizationService = OrganizationService(organizationRepository, organizationMapper)
 
         every { organizationRepository.findByIdOrNull(1L) } returns null
@@ -272,7 +273,7 @@ internal class OrganizationServiceTest {
 
     @Test
     fun `softDeleteorganization Test - organization을 조회했는데, 하위 그룹이 존재할경우, 익셉션을 발생시킵니다`() {
-        this.organizationMapper = OrganizationMapperImpl()
+        this.organizationMapper = OrganizationMapperImpl(OrganizationEmployeeMapperImpl())
         this.organizationService = OrganizationService(organizationRepository, organizationMapper)
 
         val findOrganization = Organization("그룹!!", true, null, 1L)
@@ -285,7 +286,7 @@ internal class OrganizationServiceTest {
 
     @Test
     fun `softDeleteorganization test - 그룹을 조회했는데, 조직의 이름이 최상위 그룹의 이름이면, 그룹을 삭제할수 없습니다`() {
-        this.organizationMapper = OrganizationMapperImpl()
+        this.organizationMapper = OrganizationMapperImpl(OrganizationEmployeeMapperImpl())
         this.organizationService = OrganizationService(organizationRepository, organizationMapper)
         val findorganization = Organization("조직도", true, null, 1L)
         every { organizationRepository.findByIdOrNull(1L) } returns findorganization
@@ -296,7 +297,7 @@ internal class OrganizationServiceTest {
 
     @Test
     fun `softDeleteorganization Test - organizationId로도 조회가되고, 하위그룹이 존재하지 않을경우 정상동작합니다`() {
-        this.organizationMapper = OrganizationMapperImpl()
+        this.organizationMapper = OrganizationMapperImpl(OrganizationEmployeeMapperImpl())
         this.organizationService = OrganizationService(organizationRepository, organizationMapper)
         val findOrganization = Organization("조직도의 하위그룹", true, null, 2L)
         every { organizationRepository.findByIdOrNull(2L) } returns findOrganization

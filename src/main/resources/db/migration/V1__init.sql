@@ -7,7 +7,7 @@ CREATE TABLE organization.employee
     `name`             VARCHAR(255) DEFAULT NULL,
     `nickname`         VARCHAR(255) DEFAULT NULL,
     `phone_number`     VARCHAR(255) DEFAULT NULL,
-    `position`         VARCHAR(255) DEFAULT NULL,
+    `position`         VARCHAR(255) NOT NULL,
     `responsibilities` VARCHAR(255) DEFAULT NULL,
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -33,6 +33,8 @@ CREATE TABLE organization.organization_employee
     `update_at`       DATETIME(6) DEFAULT NULL,
     `employee_id`     BIGINT DEFAULT NULL,
     `organization_id` BIGINT DEFAULT NULL,
+    `start_date` DATETIME(6) NOT NULL,
+    `end_date` DATETIME(6) DEFAULT NULL
     PRIMARY KEY (`id`),
     KEY               `fk_organizationEmployee_employee` (`employee_id`),
     KEY               `fk_organizationEmployee_organization` (`organization_id`),
@@ -40,4 +42,5 @@ CREATE TABLE organization.organization_employee
     CONSTRAINT `fk_organizationEmployee_organization` FOREIGN KEY (`organization_id`) REFERENCES `organization` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-INSERT INTO organization.organization (id, in_use ,organization_name) VALUES (1,1, "조직도");
+INSERT INTO organization.organization (id, in_use, organization_name)
+VALUES (1, 1, "조직도");

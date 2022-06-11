@@ -7,5 +7,5 @@ import org.springframework.boot.runApplication
 class OrganizationApplication
 
 fun main(args: Array<String>) {
-	runApplication<OrganizationApplication>(*args)
+    runApplication<OrganizationApplication>(*args)
 }

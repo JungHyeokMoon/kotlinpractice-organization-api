@@ -6,10 +6,13 @@ import javax.persistence.*
 @Entity
 class Employee(
     var name: String,
-    @Enumerated(value = EnumType.STRING) var position: Position? = null,
+    @Enumerated(value = EnumType.STRING) var position: Position,
     var nickname: String? = null,
     var phoneNumber: String? = null,
     var inUse: Boolean = true,
     var responsibilities: String? = null, //담당업무
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) val id: Long? = null
-) : BaseEntity()
+) : BaseEntity() {
+    @OneToMany(mappedBy = "employee")
+    val organizationEmployees: MutableSet<OrganizationEmployee> = HashSet()
+}

@@ -11,9 +11,11 @@ interface OrganizationRepository : JpaRepository<Organization, Long> {
 
     @Query(
         "select o from Organization o " +
-                "join fetch o.organizationEmployee oe " +
-                "join fetch oe.employee e " +
-                "where o.id = :organizationId and e.inUse = :inUse"
+                "join fetch o.organizationEmployees oe " +
+//                "join fetch oe.employee e " + 회원 softDelete시 organizationEmeployees의 endDate가 null이 아닌것을 처리할 것
+                "where o.id = :organizationId"
     )
-    fun findOrganizationWithEmployee(@Param("organizationId") organizationId: Long, @Param("inUse") inUse: Boolean): Organization?
+    fun findOrganizationWithEmployee(
+        @Param("organizationId") organizationId: Long,
+    ): Organization?
 }

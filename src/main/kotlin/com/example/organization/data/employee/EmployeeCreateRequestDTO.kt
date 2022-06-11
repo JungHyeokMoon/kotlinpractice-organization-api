@@ -4,7 +4,7 @@ import com.example.organization.enums.Position
 
 data class EmployeeCreateRequestDTO(
     val name: String,
-    val position: Position? = null,
+    val position: Position,
     val nickname: String? = null,
     val phoneNumber: String? = null,
     val inUse: Boolean = true,

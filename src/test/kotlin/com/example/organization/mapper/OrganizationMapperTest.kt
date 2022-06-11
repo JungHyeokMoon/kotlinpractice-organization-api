@@ -14,7 +14,7 @@ internal class OrganizationMapperTest {
 
     @BeforeEach
     fun setUp() {
-        mapper = Mappers.getMapper(OrganizationMapper::class.java)
+        mapper = OrganizationMapperImpl(OrganizationEmployeeMapperImpl())
     }
 
 
@@ -27,7 +27,7 @@ internal class OrganizationMapperTest {
             assertThat(organizationName).isEqualTo("클라우드개발센터")
             assertThat(parentOrganization).isNull()
             assertThat(childrenOrganization).isEmpty()
-            assertThat(organizationEmployee).isEmpty()
+            assertThat(organizationEmployees).isEmpty()
         }
     }
 

@@ -4,6 +4,7 @@ import com.example.organization.data.employee.EmployeeCreateRequestDTO
 import com.example.organization.data.employee.EmployeeCreateResponseDTO
 import com.example.organization.domain.Organization
 import com.example.organization.domain.OrganizationEmployee
+import com.example.organization.domain.WorkPeriod
 import com.example.organization.enums.ErrorCode
 import com.example.organization.exception.CustomException
 import com.example.organization.mapper.EmployeeMapper
@@ -13,6 +14,7 @@ import com.example.organization.repository.OrganizationRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDateTime
 
 @Service
 @Transactional(readOnly = true)
@@ -36,7 +38,8 @@ class EmployeeService(
 
         var organizationEmployee: OrganizationEmployee? = null
         findGroup?.let {
-            organizationEmployee = organizationEmployeeRepository.save(OrganizationEmployee(it, employee))
+            organizationEmployee = organizationEmployeeRepository.save(OrganizationEmployee(it, employee, WorkPeriod(
+                LocalDateTime.now(), null)))
         }
 
         return employeeMapper.toEmployeeCreateResponseDTO(employee, organizationEmployee?.organization)

@@ -14,10 +14,13 @@ interface EmployeeMapper {
     fun toEntity(employeeCreateRequest: EmployeeCreateRequestDTO): Employee
 
     @Mappings(
-        Mapping(target = "position", expression = "java(employee.getPosition()==null? null: employee.getPosition().toString())"),
+        Mapping(
+            target = "position",
+            expression = "java(employee.getPosition().toString())"
+        ),
         Mapping(target = "organizationId", source = "organization.id"),
         Mapping(target = "id", source = "employee.id"),
         Mapping(target = "inUse", source = "employee.inUse")
     )
-    fun toEmployeeCreateResponseDTO(employee: Employee, organization: Organization ? = null): EmployeeCreateResponseDTO
+    fun toEmployeeCreateResponseDTO(employee: Employee, organization: Organization? = null): EmployeeCreateResponseDTO
 }
